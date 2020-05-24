@@ -111,7 +111,7 @@ $.ajax({
 };
   setInterval(function(){
 
-       var canvasData = hiddenCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+       var canvasData = outputCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
        post(canvasData); }, 1500);
   
 
