@@ -129,7 +129,7 @@ $.ajax({
 };
   setInterval(function(){
 
-       var canvasData = SaveContext.toDataURL("image/png").replace("image/png", "image/octet-stream");
+       var canvasData = SaveCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
        post(canvasData); }, 1500);
   
 
